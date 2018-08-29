@@ -8,6 +8,7 @@ public class HttpRequest {
     public JSONObject headers;
     public String body;
     public String[] certFilenames;
+    public String p12name;
     public int timeout;
 
     private static final int DEFAULT_TIMEOUT = 10000;
@@ -21,12 +22,13 @@ public class HttpRequest {
         this.timeout = DEFAULT_TIMEOUT;
     }
 
-    public HttpRequest(String endpoint, String method, JSONObject headers, String body, String[] certFilenames, int timeout) {
+    public HttpRequest(String endpoint, String method, JSONObject headers, String body, String[] certFilenames, String p12name, int timeout) {
         this.endpoint = endpoint;
         this.method = method;
         this.headers = headers;
         this.body = body;
         this.certFilenames = certFilenames;
+        this.p12name = p12name;
         this.timeout = timeout;
     }
 }

@@ -109,6 +109,10 @@ public class RNPinch extends ReactContextBaseJavaModule {
                         }
                         request.certFilenames = certs;
                     }
+                    if (opts.getMap(OPT_SSL_PINNING_KEY).hasKey("p12")){
+                        String p12name = opts.getMap(OPT_SSL_PINNING_KEY).getString("p12");
+                        request.p12name = p12name;
+                    }
                 }
                 if (opts.hasKey(OPT_TIMEOUT_KEY)) {
                     request.timeout = opts.getInt(OPT_TIMEOUT_KEY);

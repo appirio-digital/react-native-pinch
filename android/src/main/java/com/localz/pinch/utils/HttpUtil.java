@@ -80,7 +80,7 @@ public class HttpUtil {
 
         connection = (HttpsURLConnection) url.openConnection();
         if (request.certFilenames != null) {
-            connection.setSSLSocketFactory(KeyPinStoreUtil.getInstance(request.certFilenames).getContext().getSocketFactory());
+            connection.setSSLSocketFactory(KeyPinStoreUtil.getInstance(request.certFilenames, request.p12Name).getContext().getSocketFactory());
         }
         connection.setRequestMethod(method);
 
