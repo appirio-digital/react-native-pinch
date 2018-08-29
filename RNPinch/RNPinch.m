@@ -31,7 +31,7 @@
     if (self = [super init]) {
         _certNames = certNames;
         _p12 = p12;
-        NSString *path = [[NSBundle mainBundle] pathForResource:@"settings" ofType:@"plist"];
+        NSString *path = [[NSBundle mainBundle] pathForResource:@"configuration" ofType:@"plist"];
         NSDictionary *settings = [[NSDictionary alloc] initWithContentsOfFile:path];
         _clientSecret = [settings valueForKey:_p12];
     }
