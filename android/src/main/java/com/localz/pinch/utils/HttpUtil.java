@@ -138,9 +138,6 @@ public class HttpUtil {
             response.headers = getResponseHeaders(connection);
 
             return response;
-        } catch(Exception exception) {
-            Log.e("sendHttpRequest()", exception.toString());
-            return response;
         } finally {
             if (responseStream != null) {
                 responseStream.close();
