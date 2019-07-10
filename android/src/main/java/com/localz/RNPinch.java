@@ -100,14 +100,24 @@ public class RNPinch extends ReactContextBaseJavaModule {
                 if (opts.hasKey(OPT_SSL_PINNING_KEY)) {
                     if (opts.getMap(OPT_SSL_PINNING_KEY).hasKey("cert")) {
                         String fileName = opts.getMap(OPT_SSL_PINNING_KEY).getString("cert");
-                        request.certFilenames = new String[]{fileName};
+                        if(!fileName.contains('.') && !fileName.contains('/') && !fileName.contains('\\')){
+                            request.certFilenames = new String[]{fileName};
+                        }
                     } else if (opts.getMap(OPT_SSL_PINNING_KEY).hasKey("certs")) {
                         ReadableArray certsStrings = opts.getMap(OPT_SSL_PINNING_KEY).getArray("certs");
                         String[] certs = new String[certsStrings.size()];
+                        boolean nameViolation = false;
                         for (int i = 0; i < certsStrings.size(); i++) {
-                            certs[i] = certsStrings.getString(i);
+                            String fileName = certsStrings.getString(i);
+                            if(!fileName.contains('.') && !fileName.contains('/') && !fileName.contains('\\')){
+                                certs[i] = certsStrings.getString(i);
+                            } else {
+                                nameViolation = true;
+                            }
                         }
-                        request.certFilenames = certs;
+                        if (!nameViolation) {
+                            request.certFilenames = certs;
+                        }
                     }
                     if (opts.getMap(OPT_SSL_PINNING_KEY).hasKey("p12")){
                         String p12name = opts.getMap(OPT_SSL_PINNING_KEY).getString("p12");
