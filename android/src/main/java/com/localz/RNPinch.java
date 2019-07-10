@@ -100,7 +100,7 @@ public class RNPinch extends ReactContextBaseJavaModule {
                 if (opts.hasKey(OPT_SSL_PINNING_KEY)) {
                     if (opts.getMap(OPT_SSL_PINNING_KEY).hasKey("cert")) {
                         String fileName = opts.getMap(OPT_SSL_PINNING_KEY).getString("cert");
-                        if(!fileName.contains('.') && !fileName.contains('/') && !fileName.contains('\\')){
+                        if(!fileName.contains(".") && !fileName.contains("/") && !fileName.contains("\\")){
                             request.certFilenames = new String[]{fileName};
                         }
                     } else if (opts.getMap(OPT_SSL_PINNING_KEY).hasKey("certs")) {
@@ -109,7 +109,7 @@ public class RNPinch extends ReactContextBaseJavaModule {
                         boolean nameViolation = false;
                         for (int i = 0; i < certsStrings.size(); i++) {
                             String fileName = certsStrings.getString(i);
-                            if(!fileName.contains('.') && !fileName.contains('/') && !fileName.contains('\\')){
+                            if(!fileName.contains(".") && !fileName.contains("/") && !fileName.contains("\\")){
                                 certs[i] = certsStrings.getString(i);
                             } else {
                                 nameViolation = true;
@@ -121,7 +121,9 @@ public class RNPinch extends ReactContextBaseJavaModule {
                     }
                     if (opts.getMap(OPT_SSL_PINNING_KEY).hasKey("p12")){
                         String p12name = opts.getMap(OPT_SSL_PINNING_KEY).getString("p12");
-                        request.p12name = p12name;
+                        if(!p12name.contains(".") && !p12name.contains("/") && !p12name.contains("\\")){
+                            request.p12name = p12name;
+                        }
                     }
                 }
                 if (opts.hasKey(OPT_TIMEOUT_KEY)) {
