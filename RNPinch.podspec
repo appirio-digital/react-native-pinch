@@ -1,5 +1,5 @@
 require 'json'
-package = JSON.parse(File.read('../../node_modules/react-native-pinch/package.json'))
+package = JSON.parse(File.read('./package.json'))
 
 Pod::Spec.new do |s|
   s.name         = "RNPinch"
