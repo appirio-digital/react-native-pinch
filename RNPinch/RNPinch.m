@@ -17,23 +17,25 @@
 // private delegate for verifying certs
 @interface NSURLSessionSSLPinningDelegate:NSObject <NSURLSessionDelegate>
 
-- (id)initWithCertNames:(NSArray<NSString *> *)certNames andP12:(NSString*) p12;
+- (id)initWithCertNames:(NSArray<NSString *> *)certNames andP12:(NSString*) p12 ignoreErrors:(Boolean)ignoreErrors;
 
 @property (nonatomic, strong) NSArray<NSString *> *certNames;
 @property (nonatomic, strong) NSString * p12;
 @property (nonatomic, strong) NSString * clientSecret;
+@property (nonatomic) Boolean ignoreErrors;
 
 @end
 
 @implementation NSURLSessionSSLPinningDelegate
 
-- (id)initWithCertNames:(NSArray<NSString *> *)certNames andP12:(NSString *)p12{
+- (id)initWithCertNames:(NSArray<NSString *> *)certNames andP12:(NSString*)p12 ignoreErrors:(Boolean)ignoreErrors {
     if (self = [super init]) {
         _certNames = certNames;
         _p12 = p12;
         NSString *path = [[NSBundle mainBundle] pathForResource:@"configuration" ofType:@"plist"];
         NSDictionary *settings = [[NSDictionary alloc] initWithContentsOfFile:path];
         _clientSecret = [settings valueForKey:_p12];
+        _ignoreErrors = ignoreErrors;
     }
     return self;
 }
@@ -63,20 +65,23 @@
     if ([[[challenge protectionSpace] authenticationMethod] isEqualToString:NSURLAuthenticationMethodServerTrust]) {
         NSString *domain = challenge.protectionSpace.host;
         SecTrustRef serverTrust = [[challenge protectionSpace] serverTrust];
-        
+
         NSArray *policies = @[(__bridge_transfer id)SecPolicyCreateSSL(true, (__bridge CFStringRef)domain)];
-        
+
         SecTrustSetPolicies(serverTrust, (__bridge CFArrayRef)policies);
         // setup
         SecTrustSetAnchorCertificates(serverTrust, (__bridge CFArrayRef)self.pinnedCertificateData);
         SecTrustResultType result;
-        
+
         // evaluate
         OSStatus errorCode = SecTrustEvaluate(serverTrust, &result);
-        
+
         BOOL evaluatesAsTrusted = (result == kSecTrustResultUnspecified || result == kSecTrustResultProceed);
         if (errorCode == errSecSuccess && evaluatesAsTrusted) {
             NSURLCredential *credential = [NSURLCredential credentialForTrust:serverTrust];
+            completionHandler(NSURLSessionAuthChallengeUseCredential, credential);
+        } else if (self.ignoreErrors){
+            NSURLCredential *credential = [NSURLCredential credentialForTrust: challenge.protectionSpace.serverTrust];
             completionHandler(NSURLSessionAuthChallengeUseCredential, credential);
         } else {
             completionHandler(NSURLSessionAuthChallengeRejectProtectionSpace, NULL);
@@ -186,14 +191,15 @@ RCT_EXPORT_METHOD(fetch:(NSString *)url obj:(NSDictionary *)obj callback:(RCTRes
         p12 = (NSString*)obj[@"sslPinning"][@"p12"];
     }
     if (obj && obj[@"sslPinning"] && obj[@"sslPinning"][@"cert"]) {
-        NSURLSessionSSLPinningDelegate *delegate = [[NSURLSessionSSLPinningDelegate alloc] initWithCertNames:@[obj[@"sslPinning"][@"cert"]] andP12:p12];
+        NSURLSessionSSLPinningDelegate *delegate = [[NSURLSessionSSLPinningDelegate alloc] initWithCertNames:@[obj[@"sslPinning"][@"cert"]] andP12:p12 ignoreErrors:(Boolean)obj[@"ignoreErrors"]];
         session = [NSURLSession sessionWithConfiguration:self.sessionConfig delegate:delegate delegateQueue:[NSOperationQueue mainQueue]];
     } else if (obj && obj[@"sslPinning"] && obj[@"sslPinning"][@"certs"]) {
         // load all certs
-        NSURLSessionSSLPinningDelegate *delegate = [[NSURLSessionSSLPinningDelegate alloc] initWithCertNames:obj[@"sslPinning"][@"certs"] andP12:p12];
+        NSURLSessionSSLPinningDelegate *delegate = [[NSURLSessionSSLPinningDelegate alloc] initWithCertNames:obj[@"sslPinning"][@"certs"] andP12:p12 ignoreErrors:(Boolean)obj[@"ignoreErrors"]];
         session = [NSURLSession sessionWithConfiguration:self.sessionConfig delegate:delegate delegateQueue:[NSOperationQueue mainQueue]];
     } else {
-        session = [NSURLSession sessionWithConfiguration:self.sessionConfig];
+        NSURLSessionSSLPinningDelegate *delegate = [[NSURLSessionSSLPinningDelegate alloc] initWithCertNames:obj[@"sslPinning"][@"certs"] andP12:p12 ignoreErrors:(Boolean)obj[@"ignoreErrors"]];
+        session = [NSURLSession sessionWithConfiguration:self.sessionConfig delegate:delegate delegateQueue:[NSOperationQueue mainQueue]];
     }
     
     __block NSURLSessionDataTask *dataTask = [session dataTaskWithRequest:request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
