@@ -22,11 +22,15 @@ import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import javax.net.ssl.SSLContext;
 import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 public class HttpUtil {
     private static final String DEFAULT_CONTENT_TYPE = "application/json";
@@ -79,6 +83,32 @@ public class HttpUtil {
         String method = request.method.toUpperCase();
 
         connection = (HttpsURLConnection) url.openConnection();
+
+        if (request.ignoreErrors != null && request.ignoreErrors) {
+            SSLContext sslContext = SSLContext.getInstance("TLS");
+
+            TrustManager[] trustAllCerts = new TrustManager[] { new X509TrustManager() {
+                @Override
+                public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+
+                }
+
+                @Override
+                public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+
+                }
+
+                @Override
+                public X509Certificate[] getAcceptedIssuers() {
+                    return new X509Certificate[]{};
+                }
+            }   };
+
+            sslContext.init(null, trustAllCerts, null);
+
+            connection.setSSLSocketFactory(sslContext.getSocketFactory());
+        }
+
         if (request.certFilenames != null) {
             connection.setSSLSocketFactory(KeyPinStoreUtil.getInstance(request.certFilenames, request.p12name).getContext().getSocketFactory());
         }

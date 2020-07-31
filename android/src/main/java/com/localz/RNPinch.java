@@ -1,7 +1,7 @@
 package com.localz;
 
 import android.os.AsyncTask;
-import android.support.annotation.RequiresPermission;
+import androidx.annotation.RequiresPermission;
 import android.util.Log;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageInfo;
@@ -39,6 +39,7 @@ public class RNPinch extends ReactContextBaseJavaModule {
     private static final String OPT_BODY_KEY = "body";
     private static final String OPT_SSL_PINNING_KEY = "sslPinning";
     private static final String OPT_TIMEOUT_KEY = "timeoutInterval";
+    private static final String OPT_IGNORE_ERRORS = "ignoreErrors";
 
     private HttpUtil httpUtil;
     private String packageName = null;
@@ -88,6 +89,9 @@ public class RNPinch extends ReactContextBaseJavaModule {
                 WritableMap response = Arguments.createMap();
                 HttpRequest request = new HttpRequest(endpoint[0]);
 
+                if (opts.hasKey(OPT_IGNORE_ERRORS)) {
+                    request.ignoreErrors = opts.getBoolean(OPT_IGNORE_ERRORS);
+                }
                 if (opts.hasKey(OPT_BODY_KEY)) {
                     request.body = opts.getString(OPT_BODY_KEY);
                 }
